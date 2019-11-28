@@ -10,6 +10,8 @@ import os
 import csv
 import CMDModule
 import socket
+import datetime
+
 
 
 
@@ -260,8 +262,8 @@ def fill_system_kpi(cmd_instance,csv_file):
 
                 new_kpi = kpi.strip() + '_' + disk
 
-                if(kpi_value == 'N/A'):
-                        continue
+		if(kpi_value == 'N/A'):
+			continue
 
                 new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
                 add_row_to_csv(csv_file, new_row)
@@ -337,8 +339,8 @@ def fill_system_kpi(cmd_instance,csv_file):
 
                 new_kpi = kpi.strip() + '_' + disk
 
-                if(kpi_value == 'N/A'):
-                        continue
+		if(kpi_value == 'N/A'):
+			continue
 
                 new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
                 add_row_to_csv(csv_file, new_row)
@@ -356,7 +358,7 @@ def fill_system_kpi(cmd_instance,csv_file):
 
         # STC
 
-        for ip in cmd_instance.stc_group:
+    for ip in cmd_instance.stc_group:
             print(ip)
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, '.1.3.6.1.2.1.1.5')
         #    print (command)
@@ -412,8 +414,8 @@ def fill_system_kpi(cmd_instance,csv_file):
 
                     new_kpi = kpi.strip() + '_' + disk
 
-                    if(kpi_value == 'N/A'):
-                        continue
+		    if(kpi_value == 'N/A'):
+	       	    	continue
 
                     new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
                     add_row_to_csv(csv_file, new_row)
@@ -431,7 +433,7 @@ def fill_system_kpi(cmd_instance,csv_file):
 
         # DM
 
-        for ip in cmd_instance.dm_group:
+    for ip in cmd_instance.dm_group:
             #print(ip)
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, '.1.3.6.1.2.1.1.5')
             #print (command)
@@ -487,8 +489,8 @@ def fill_system_kpi(cmd_instance,csv_file):
 
                     new_kpi = kpi.strip() + '_' + disk
 
-                    if(kpi_value == 'N/A'):
-                        continue
+		    if(kpi_value == 'N/A'):
+   		    	continue
 
                     new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
                     add_row_to_csv(csv_file, new_row)
@@ -574,8 +576,8 @@ def fill_system_kpi(cmd_instance,csv_file):
                 except:
                     value_type = 'ERROR'
 
-                if(kpi_value == 'N/A'):
-                        continue
+		if(kpi_value == 'N/A'):
+			continue
 
                 new_kpi = kpi.strip() + '_' + disk
 
@@ -594,13 +596,10 @@ if __name__ == "__main__":
     cmd_instance = CMDModule.CMD('/opt/sybase/data/KPIs/tools/scripts/invenrtory_file.ini')
     cmd_instance.analyze_inventory_file()
     cmd_instance.show_devices()
-
-    fname_tmp = "kpi_report_%s%s"%(today,'.csv')
+    uniq_f1 = str(datetime.datetime.now().date()) + '_' + str(datetime.datetime.now().time()).replace(':', '.')
+    fname_tmp = "kpi_report_%s%s"%(uniq_f1,'.csv')
     fname = "/opt/sybase/data/KPIs/tools/output/"+fname_tmp
     header = ['COMPONENT','HOSTNAME', 'IP','DATE', 'KPI', 'VALUE', 'VALUE_TYPE']
     csv_fname = create_csv(header, fname)
 
     fill_system_kpi(cmd_instance,csv_fname)
-
-
-
