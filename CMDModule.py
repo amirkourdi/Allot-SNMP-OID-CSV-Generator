@@ -56,6 +56,9 @@ class CMD:
                 elif newline.startswith('[STC]'):
                     flag = 'stc'
                     continue
+                elif newline.startswith('[DM]'):
+                    flag = 'dm'
+                    continue
                 elif newline.startswith('[DWH]'):
                     flag = 'dwh'
                     continue
@@ -82,6 +85,9 @@ class CMD:
                         elif flag == 'stc':
                             self.stc_group.append(newline)
                             continue
+                        elif flag == 'dm':
+                            self.dm_group.append(newline)
+                            continue
                         elif flag == 'dwh':
                             self.dwh_group.append(newline)
                             continue
@@ -102,6 +108,7 @@ class CMD:
         print("SMP: ", self.smp_group)
         print("ASO: ", self.aos_group)
         print("STC: ", self.stc_group)
+        print("DM: ", self.dm_group)
         print("DSC: ", self.dsc_group)
         print("DWH: ", self.dwh_group)
         print("BI: ", self.bi_group)
@@ -159,6 +166,9 @@ class CMD:
                 remote_cmd(host, 'allot', command)
         elif group == 'stc':
             for host in self.stc_group:
+                remote_cmd(host, 'allot', command)
+        elif group == 'dm':
+            for host in self.dm_group:
                 remote_cmd(host, 'allot', command)
         elif group == 'dwh':
             for host in self.dwh_group:
