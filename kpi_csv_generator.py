@@ -53,8 +53,8 @@ system_kpi_dict = {
 aos_kpi_dict = {
 
 #'Hostname':     ('1.3.6.1.4.1.2603.5.2.6.4.1','STRING'),
-'Totalbps':     ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.3','bps'),
-'Totalpps':     ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.4','pps'),
+'Totalbps':     ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.4','bps'),
+'Totalpps':     ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.3','pps'),
 'TotalNoOfConnections': ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.6','Numeric'),
 'TotalDroppedFrames':   ('1.3.6.1.4.1.2603.5.4.9.1.5.1000.1.1000.11','Numeric'),
 'TotalCER':     ('1.3.6.1.4.1.2603.5.5.18.1.3.0.10001','Numeric'),
@@ -215,13 +215,11 @@ def fill_system_kpi(cmd_instance,csv_file):
             new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
             add_row_to_csv(csv_file, new_row)
 
-        print(" ")
-        print(" ")
+
 
         for kpi, oid in nic_kpi_dict.items():
             for nic,nicidx in nic_dict.items():
                 new_oid = oid[0].replace("<nicIdx>", nicidx)
-                #print( nicidx,nic)
                 command = "snmpwalk -v 2c -c v1v2Config %s %s" % (ip, new_oid)
                 kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
 
@@ -270,7 +268,122 @@ def fill_system_kpi(cmd_instance,csv_file):
 
 
 
+    # BI
 
+    for ip in cmd_instance.bi_group:
+        command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, '.1.3.6.1.2.1.1.5')
+
+        try:
+            hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
+
+        except:
+            hostname = 'N/A'
+
+        component = 'BI'
+        for kpi, oid in system_kpi_dict.items():
+            command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, oid[0])
+            kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+            if ("error" in kpi_out):
+                print(command)
+            try:
+                kpi_value = kpi_out.split(': ')[1]
+            except:
+                kpi_value = 'N/A'
+
+            try:
+                value_type = oid[1]
+            except:
+                value_type = 'ERROR'
+
+
+
+            new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
+            add_row_to_csv(csv_file, new_row)
+
+
+
+        for kpi, oid in disk_kpi_dict.items():
+            for disk, diskidx in disk_dict.items():
+                new_oid = oid[0].replace("<diskIdx>", diskidx)
+                command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, new_oid)
+                kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+
+                try:
+                    kpi_value = kpi_out.split(': ')[1]
+                except:
+                    kpi_value = 'N/A'
+
+                try:
+                    value_type = oid[1]
+                except:
+                    value_type = 'ERROR'
+
+                new_kpi = kpi.strip() + '_' + disk
+
+                if(kpi_value == 'N/A'):
+                    continue
+
+                new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
+                add_row_to_csv(csv_file, new_row)
+
+
+
+    # DWH
+
+    for ip in cmd_instance.dwh_group:
+        command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, '.1.3.6.1.2.1.1.5')
+        try:
+            hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
+
+        except:
+            hostname = 'N/A'
+
+        component = 'DWH'
+        for kpi, oid in system_kpi_dict.items():
+            command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, oid[0])
+            kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+            if ("error" in kpi_out):
+                print(command)
+            try:
+                kpi_value = kpi_out.split(': ')[1]
+            except:
+                kpi_value = 'N/A'
+
+            try:
+                value_type = oid[1]
+            except:
+                value_type = 'ERROR'
+
+
+
+            new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
+            add_row_to_csv(csv_file, new_row)
+
+
+
+        for kpi, oid in disk_kpi_dict.items():
+            for disk, diskidx in disk_dict.items():
+                new_oid = oid[0].replace("<diskIdx>", diskidx)
+                command = "snmpwalk -v 3 -u MD5 -a MD5 -A MD5UserAuthPassword12 -l authNoPriv %s %s" % (ip, new_oid)
+                kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+                print(command)
+                try:
+                    kpi_value = kpi_out.split(': ')[1]
+                except:
+                    kpi_value = 'N/A'
+
+                try:
+                    value_type = oid[1]
+                except:
+                    value_type = 'ERROR'
+
+                new_kpi = kpi.strip() + '_' + disk
+
+                if(kpi_value == 'N/A'):
+                    continue
+
+                new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
+                add_row_to_csv(csv_file, new_row)
 
 
 
@@ -291,7 +404,6 @@ def fill_system_kpi(cmd_instance,csv_file):
         component = 'NX'
         for kpi, oid in system_kpi_dict.items():
             command = "snmpwalk -On -c allotcomm -v 2c %s:1161 %s" % (ip, oid[0])
-     #       print (command)
             kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
             if ("error" in kpi_out):
                 print(command)
@@ -309,19 +421,12 @@ def fill_system_kpi(cmd_instance,csv_file):
             new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
             add_row_to_csv(csv_file, new_row)
 
-        print(" ")
-        print(" ")
-
-
-
 
         for kpi, oid in disk_kpi_dict.items():
             for disk,diskidx in disk_dict.items():
                 new_oid = oid[0].replace("<diskIdx>", diskidx)
                 command = "snmpwalk -On -c allotcomm -v 2c %s:1161 %s" % (ip, new_oid)
                 kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
-       #         print(command)
-       #         print(kpi_out)
                 try:
                    kpi_value = kpi_out.split(': ')[1]
                 except:
@@ -347,19 +452,10 @@ def fill_system_kpi(cmd_instance,csv_file):
 
 
 
-
-
-
-
-
-
-
         # STC
 
         for ip in cmd_instance.stc_group:
-            print(ip)
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, '.1.3.6.1.2.1.1.5')
-        #    print (command)
 
             try:
                 hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
@@ -368,7 +464,6 @@ def fill_system_kpi(cmd_instance,csv_file):
                 hostname = 'N/A'
 
             component = 'STC'
-            #print(hostname)
             for kpi, oid in system_kpi_dict.items():
                 command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, oid[0])
                 kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
@@ -389,8 +484,63 @@ def fill_system_kpi(cmd_instance,csv_file):
                 new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
                 add_row_to_csv(csv_file, new_row)
 
-            print(" ")
-            print(" ")
+
+            for kpi, oid in disk_kpi_dict.items():
+                for disk, diskidx in disk_dict.items():
+                    new_oid = oid[0].replace("<diskIdx>", diskidx)
+                    command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, new_oid)
+                    kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+                    try:
+                        kpi_value = kpi_out.split(': ')[1]
+                    except:
+                        kpi_value = 'N/A'
+
+                    try:
+                        value_type = oid[1]
+                    except:
+                        value_type = 'ERROR'
+
+                    new_kpi = kpi.strip() + '_' + disk
+
+                    if(kpi_value == 'N/A'):
+                        continue
+
+                    new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), new_kpi.strip(), kpi_value.strip(), value_type.strip()]
+                    add_row_to_csv(csv_file, new_row)
+
+# DSC
+
+        for ip in cmd_instance.dsc_group:
+            command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, '.1.3.6.1.2.1.1.5')
+
+            try:
+                hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
+
+            except:
+                hostname = 'N/A'
+
+            component = 'DSC'
+            for kpi, oid in system_kpi_dict.items():
+                command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, oid[0])
+                kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
+                if ("error" in kpi_out):
+                    print(command)
+                try:
+                    kpi_value = kpi_out.split(': ')[1]
+                except:
+                    kpi_value = 'N/A'
+
+                try:
+                    value_type = oid[1]
+                except:
+                    value_type = 'ERROR'
+
+
+
+                new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
+                add_row_to_csv(csv_file, new_row)
+
+
 
 
             for kpi, oid in disk_kpi_dict.items():
@@ -398,8 +548,6 @@ def fill_system_kpi(cmd_instance,csv_file):
                     new_oid = oid[0].replace("<diskIdx>", diskidx)
                     command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, new_oid)
                     kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
-          #          print(command)
-          #          print(kpi_out)
                     try:
                         kpi_value = kpi_out.split(': ')[1]
                     except:
@@ -419,23 +567,10 @@ def fill_system_kpi(cmd_instance,csv_file):
                     add_row_to_csv(csv_file, new_row)
 
 
-
-
-
-
-
-
-
-
-
-
         # DM
 
         for ip in cmd_instance.dm_group:
-            #print(ip)
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, '.1.3.6.1.2.1.1.5')
-            #print (command)
-
             try:
                 hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
 
@@ -443,7 +578,6 @@ def fill_system_kpi(cmd_instance,csv_file):
                 hostname = 'N/A'
 
             component = 'DM'
-           # print(hostname)
             for kpi, oid in system_kpi_dict.items():
                 command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, oid[0])
                 kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
@@ -464,16 +598,13 @@ def fill_system_kpi(cmd_instance,csv_file):
                 new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
                 add_row_to_csv(csv_file, new_row)
 
-            print(" ")
-            print(" ")
 
             for kpi, oid in disk_kpi_dict.items():
                 for disk, diskidx in disk_dict.items():
                     new_oid = oid[0].replace("<diskIdx>", diskidx)
                     command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, new_oid)
                     kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
-               #     print(command)
-              #      print(kpi_out)
+
                     try:
                         kpi_value = kpi_out.split(': ')[1]
                     except:
@@ -503,9 +634,7 @@ def fill_system_kpi(cmd_instance,csv_file):
     # SMP
 
     for ip in cmd_instance.smp_group:
-   #     print(ip)
         command = "snmpwalk -v 2c -c allotcomm %s %s"%(ip,'.1.3.6.1.2.1.1.5')
-  #      print (command)
 
         try:
             hostname = cmd_instance.get_stdout_cmd(command).split(': ')[1].replace("\"", " ").partition('.')[0].strip()
@@ -514,7 +643,6 @@ def fill_system_kpi(cmd_instance,csv_file):
             hostname = 'N/A'
 
         component = 'SMP'
- #       print(hostname)
         for kpi, oid in system_kpi_dict.items():
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, oid[0])
             kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
@@ -533,8 +661,6 @@ def fill_system_kpi(cmd_instance,csv_file):
             new_row = [component.strip(), hostname.strip(), ip.strip(), kpi_timestamp.strip(), kpi.strip(), kpi_value.strip(), value_type.strip()]
             add_row_to_csv(csv_file, new_row)
 
-        print(" ")
-        print(" ")
 
         for kpi, oid in smp_kpi_dict.items():
             command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, oid[0])
@@ -560,8 +686,7 @@ def fill_system_kpi(cmd_instance,csv_file):
                 new_oid = oid[0].replace("<diskIdx>", diskidx)
                 command = "snmpwalk -v 2c -c allotcomm %s %s" % (ip, new_oid)
                 kpi_out = clean_output(cmd_instance.get_stdout_cmd(command))
-              #  print(command)
-              #  print(kpi_out)
+
                 try:
                    kpi_value = kpi_out.split(': ')[1]
                 except:
@@ -601,6 +726,3 @@ if __name__ == "__main__":
     csv_fname = create_csv(header, fname)
 
     fill_system_kpi(cmd_instance,csv_fname)
-
-
-
